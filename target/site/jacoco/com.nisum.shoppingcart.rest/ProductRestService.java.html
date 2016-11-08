@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>ProductRestService.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">SpringMVC</a> &gt; <a href="index.source.html" class="el_package">com.nisum.shoppingcart.rest</a> &gt; <span class="el_source">ProductRestService.java</span></div><h1>ProductRestService.java</h1><pre class="source lang-java linenums">package com.nisum.shoppingcart.rest;
+
+import com.nisum.shoppingcart.beans.Product;
+import com.nisum.shoppingcart.dao.ProductDao;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.io.IOException;
+import java.util.List;
+
+@RestController
+@RequestMapping(value = &quot;/product&quot;)
+<span class="fc" id="L21">public class ProductRestService {</span>
+
+	@Autowired
+	private ProductDao productDao;
+
+	@RequestMapping(value = &quot;/&quot;, method = RequestMethod.GET)
+	public ResponseEntity&lt;List&lt;Product&gt;&gt; listProducts() {
+<span class="fc" id="L28">		return new ResponseEntity&lt;List&lt;Product&gt;&gt;(productDao.getProductList(), HttpStatus.OK);</span>
+	}
+
+	@RequestMapping(value = &quot;/{productId}&quot;, method = RequestMethod.GET, produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity&lt;Product&gt; getProductById(@PathVariable String productId, Model model) throws IOException {
+<span class="fc" id="L33">		Product product = productDao.getProductByID(productId);</span>
+<span class="fc bfc" id="L34" title="All 2 branches covered.">		if (product == null) {</span>
+<span class="fc" id="L35">			System.out.println(&quot;Unable to get product with id &quot; + productId + &quot; not found&quot;);</span>
+<span class="fc" id="L36">			return new ResponseEntity&lt;Product&gt;(HttpStatus.NOT_FOUND);</span>
+		}
+<span class="fc" id="L38">		return new ResponseEntity&lt;&gt;(product, HttpStatus.OK);</span>
+	}
+
+	@RequestMapping(value = &quot;/{productId}&quot;, method = RequestMethod.DELETE)
+	public ResponseEntity&lt;Product&gt; deleteProduct(@PathVariable(&quot;productId&quot;) String productId) {
+<span class="fc" id="L43">		Product product = productDao.getProductByID(productId);</span>
+<span class="fc bfc" id="L44" title="All 2 branches covered.">		if (product == null) {</span>
+<span class="fc" id="L45">			System.out.println(&quot;Unable to delete. product with id &quot; + productId + &quot; not found&quot;);</span>
+<span class="fc" id="L46">			return new ResponseEntity&lt;Product&gt;(HttpStatus.NOT_FOUND);</span>
+		}
+<span class="fc" id="L48">		productDao.deleteProduct(productId);</span>
+<span class="fc" id="L49">		return new ResponseEntity&lt;&gt;(HttpStatus.NO_CONTENT);</span>
+	}
+
+	@RequestMapping(value = &quot;/&quot;, method = RequestMethod.POST)
+	public ResponseEntity&lt;Void&gt; createProduct(@RequestBody Product product) {
+<span class="fc" id="L54">		System.out.println(&quot;Creating product &quot; + product.getName());</span>
+
+<span class="fc bfc" id="L56" title="All 2 branches covered.">		if (productDao.getProductByID(product.getId()) != null) {</span>
+<span class="fc" id="L57">			System.out.println(&quot;Product &quot; + product.getName() + &quot; already found&quot;);</span>
+
+<span class="fc" id="L59">			return new ResponseEntity&lt;Void&gt;(HttpStatus.CONFLICT);</span>
+		}
+<span class="fc" id="L61">		productDao.createProduct(product);</span>
+<span class="fc" id="L62">		return new ResponseEntity&lt;&gt;(HttpStatus.CREATED);</span>
+	}
+
+	@RequestMapping(value = &quot;/{productId}&quot;, method = RequestMethod.PUT)
+	public ResponseEntity&lt;Product&gt; updateProduct(@PathVariable(&quot;productId&quot;) String productId,
+			@RequestBody Product product) {
+<span class="fc" id="L68">		System.out.println(&quot;Updating product &quot; + productId);</span>
+
+<span class="fc" id="L70">		Product currentProduct = productDao.getProductByID(productId);</span>
+
+<span class="fc bfc" id="L72" title="All 2 branches covered.">		if (currentProduct == null) {</span>
+<span class="fc" id="L73">			System.out.println(&quot;currentProduct with id &quot; + productId + &quot; not found&quot;);</span>
+<span class="fc" id="L74">			return new ResponseEntity&lt;&gt;(HttpStatus.NOT_FOUND);</span>
+		}
+
+<span class="fc" id="L77">		currentProduct.setName(product.getName());</span>
+<span class="fc" id="L78">		currentProduct.setPrice(product.getPrice());</span>
+<span class="fc" id="L79">		productDao.updateProduct(currentProduct);</span>
+<span class="fc" id="L80">		return new ResponseEntity&lt;&gt;(currentProduct, HttpStatus.NO_CONTENT);</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.0.201403182114</span></div></body></html>

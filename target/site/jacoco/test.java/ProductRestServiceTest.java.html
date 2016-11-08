@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>ProductRestServiceTest.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">SpringMVC</a> &gt; <a href="index.source.html" class="el_package">test.java</a> &gt; <span class="el_source">ProductRestServiceTest.java</span></div><h1>ProductRestServiceTest.java</h1><pre class="source lang-java linenums">package test.java;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+
+import com.nisum.shoppingcart.beans.Product;
+import com.nisum.shoppingcart.dao.ProductDao;
+import com.nisum.shoppingcart.rest.ProductRestService;
+
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.hamcrest.core.Is.is;
+import java.util.Arrays; 
+ 
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration
+@WebAppConfiguration
+<span class="nc" id="L34">public class ProductRestServiceTest {</span>
+ 
+    private MockMvc mockMvc;
+ 
+    @Autowired
+    private ProductDao productDao;
+ 
+    @Autowired
+    private WebApplicationContext applicationContext;
+
+    @Before
+    public void setUp() {
+    // We have to reset our mock between tests because the mock objects
+    // are managed by the Spring container. If we would not reset them,
+    // stubbing and verified behavior would &quot;leak&quot; from one test to another.
+<span class="nc" id="L49">    Mockito.reset(productDao);</span>
+
+<span class="nc" id="L51">    mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext).build();</span>
+<span class="nc" id="L52">    }</span>
+    
+    @Configuration
+    @EnableWebMvc
+<span class="nc" id="L56">    public static class TestConfiguration {</span>
+ 
+        @Bean
+        public ProductRestService productRestService() {
+<span class="nc" id="L60">            return new ProductRestService();</span>
+        }
+        
+        @Bean
+        public ProductDao productDao() {
+<span class="nc" id="L65">          return Mockito.mock(ProductDao.class);</span>
+        }
+ 
+    }
+    
+    @Test
+    public void testGetProductByID() throws Exception {
+<span class="nc" id="L72">        Product product = new Product(&quot;1&quot;,&quot;Test1&quot;, 100.0);</span>
+<span class="nc" id="L73">        when(productDao.getProductByID(&quot;1&quot;)).thenReturn((product));</span>
+ 
+<span class="nc" id="L75">        mockMvc.perform(get(&quot;/product/1&quot;)).andDo(print())</span>
+<span class="nc" id="L76">        .andExpect(status().isOk())</span>
+<span class="nc" id="L77">        .andExpect(jsonPath(&quot;$.id&quot;, is(&quot;1&quot;)))</span>
+<span class="nc" id="L78">        .andExpect(jsonPath(&quot;$.name&quot;, is(&quot;Test1&quot;)))</span>
+<span class="nc" id="L79">        .andExpect(jsonPath(&quot;$.price&quot;, is(100.0)));</span>
+        
+<span class="nc" id="L81">        verify(productDao, times(1)).getProductByID(&quot;1&quot;);</span>
+<span class="nc" id="L82">        verifyNoMoreInteractions(productDao);</span>
+<span class="nc" id="L83">    }</span>
+    
+    @Test
+    public void testGetProductByIDNotFound() throws Exception {
+    
+<span class="nc" id="L88">        when(productDao.getProductByID(&quot;2&quot;)).thenReturn((null));</span>
+ 
+<span class="nc" id="L90">        mockMvc.perform(get(&quot;/product/2&quot;)).andDo(print())</span>
+<span class="nc" id="L91">        .andExpect(status().is(HttpStatus.NOT_FOUND.value()));</span>
+<span class="nc" id="L92">        verify(productDao, times(1)).getProductByID(&quot;2&quot;);</span>
+<span class="nc" id="L93">        verifyNoMoreInteractions(productDao);</span>
+<span class="nc" id="L94">    }</span>
+    
+    
+    @Test
+    public void testGetAllProduct() throws Exception {
+<span class="nc" id="L99">    	Product product = new Product(&quot;1&quot;, &quot;Test1&quot;, 100);</span>
+    	
+<span class="nc" id="L101">    	Product product2 = new Product(&quot;2&quot;, &quot;Test2&quot;, 200);</span>
+    	
+<span class="nc" id="L103">        when(productDao.getProductList()).thenReturn(Arrays.asList(product, product2));</span>
+ 
+<span class="nc" id="L105">        mockMvc.perform(get(&quot;/product/&quot;)).andDo(print())</span>
+<span class="nc" id="L106">        .andExpect(status().isOk())</span>
+<span class="nc" id="L107">        .andExpect(jsonPath(&quot;$[0].id&quot;, is(&quot;1&quot;)))</span>
+<span class="nc" id="L108">        .andExpect(jsonPath(&quot;$[0].name&quot;, is(&quot;Test1&quot;)))</span>
+<span class="nc" id="L109">        .andExpect(jsonPath(&quot;$[0].price&quot;, is(100.0)))</span>
+<span class="nc" id="L110">        .andExpect(jsonPath(&quot;$[1].id&quot;, is(&quot;2&quot;)))</span>
+<span class="nc" id="L111">        .andExpect(jsonPath(&quot;$[1].name&quot;, is(&quot;Test2&quot;)))</span>
+<span class="nc" id="L112">        .andExpect(jsonPath(&quot;$[1].price&quot;, is(200.0)));</span>
+        
+<span class="nc" id="L114">        verify(productDao, times(1)).getProductList();</span>
+<span class="nc" id="L115">        verifyNoMoreInteractions(productDao);</span>
+<span class="nc" id="L116">    }</span>
+    
+    
+    @Test
+    public void testDeleteProductSuccess() throws Exception {
+<span class="nc" id="L121">        Product product = new Product(&quot;id1&quot;,&quot;Product1&quot;, 100.0);</span>
+
+<span class="nc" id="L123">        when(productDao.getProductByID(product.getId())).thenReturn(product);</span>
+<span class="nc" id="L124">        doNothing().when(productDao).deleteProduct(product.getId());</span>
+
+<span class="nc" id="L126">        mockMvc.perform(</span>
+<span class="nc" id="L127">                delete(&quot;/product/{id}&quot;, product.getId()))</span>
+<span class="nc" id="L128">                .andExpect(status().is(204));</span>
+
+<span class="nc" id="L130">        verify(productDao, times(1)).getProductByID(product.getId());</span>
+<span class="nc" id="L131">        verify(productDao, times(1)).deleteProduct(product.getId());</span>
+<span class="nc" id="L132">        verifyNoMoreInteractions(productDao);</span>
+<span class="nc" id="L133">    }</span>
+
+    
+    
+    @Test
+    public void testDeleteProductNotFound() throws Exception {
+<span class="nc" id="L139">        Product product = new Product(&quot;id1&quot;,&quot;Product1&quot;, 100.0);</span>
+
+<span class="nc" id="L141">        when(productDao.getProductByID(product.getId())).thenReturn(null);</span>
+<span class="nc" id="L142">        doNothing().when(productDao).deleteProduct(product.getId());</span>
+
+<span class="nc" id="L144">        mockMvc.perform(</span>
+<span class="nc" id="L145">                delete(&quot;/product/{id}&quot;, product.getId()))</span>
+<span class="nc" id="L146">                .andExpect(status().is(404));</span>
+
+<span class="nc" id="L148">        verify(productDao, times(1)).getProductByID(product.getId());</span>
+<span class="nc" id="L149">        verifyNoMoreInteractions(productDao);</span>
+<span class="nc" id="L150">    }</span>
+    
+    @Test
+    public void testCreateProductFailure() throws Exception {
+<span class="nc" id="L154">        Product product = new Product(&quot;id1&quot;,&quot;Product1&quot;, 100.0);</span>
+
+<span class="nc" id="L156">        when(productDao.getProductByID(product.getId())).thenReturn(product);</span>
+<span class="nc" id="L157">        doNothing().when(productDao).createProduct(product);</span>
+
+<span class="nc" id="L159">        mockMvc.perform(</span>
+<span class="nc" id="L160">                post(&quot;/product/&quot;)</span>
+<span class="nc" id="L161">                        .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="nc" id="L162">                        .content(asJsonString(product)))</span>
+<span class="nc" id="L163">                .andExpect(status().is(409));</span>
+
+<span class="nc" id="L165">        verify(productDao, times(1)).getProductByID(product.getId());</span>
+<span class="nc" id="L166">        verifyNoMoreInteractions(productDao);</span>
+<span class="nc" id="L167">    }</span>
+
+    
+    @Test
+    public void testCreateProductSuccess() throws Exception {
+<span class="nc" id="L172">        Product product = new Product(&quot;id2&quot;,&quot;Product2&quot;, 100.0);</span>
+
+<span class="nc" id="L174">        when(productDao.getProductByID(product.getId())).thenReturn(null);</span>
+<span class="nc" id="L175">        doNothing().when(productDao).createProduct(product);</span>
+
+<span class="nc" id="L177">        mockMvc.perform(</span>
+<span class="nc" id="L178">                post(&quot;/product/&quot;)</span>
+<span class="nc" id="L179">                        .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="nc" id="L180">                        .content(asJsonString(product)))</span>
+<span class="nc" id="L181">                .andExpect(status().is(201));</span>
+
+<span class="nc" id="L183">        verify(productDao, times(1)).getProductByID(product.getId());</span>
+<span class="nc" id="L184">        verify(productDao, times(1)).createProduct(any());</span>
+<span class="nc" id="L185">        verifyNoMoreInteractions(productDao);</span>
+<span class="nc" id="L186">    }</span>
+
+    @Test
+    public void testUpdateProductFailure() throws Exception {
+<span class="nc" id="L190">        Product product = new Product(&quot;id1&quot;,&quot;Product1&quot;, 100.0);</span>
+
+<span class="nc" id="L192">        when(productDao.getProductByID(product.getId())).thenReturn(null);</span>
+<span class="nc" id="L193">        doNothing().when(productDao).updateProduct(product);</span>
+
+<span class="nc" id="L195">        mockMvc.perform(</span>
+<span class="nc" id="L196">                put(&quot;/product/id1&quot;)</span>
+<span class="nc" id="L197">                        .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="nc" id="L198">                        .content(asJsonString(product)))</span>
+<span class="nc" id="L199">                .andExpect(status().is(404));</span>
+
+<span class="nc" id="L201">        verify(productDao, times(1)).getProductByID(product.getId());</span>
+<span class="nc" id="L202">        verifyNoMoreInteractions(productDao);</span>
+<span class="nc" id="L203">    }</span>
+
+    
+    @Test
+    public void testUpdateProductSuccess() throws Exception {
+<span class="nc" id="L208">        Product product = new Product(&quot;id2&quot;,&quot;Product2&quot;, 100.0);</span>
+<span class="nc" id="L209">        Product newProduct = new Product(&quot;id2&quot;,&quot;ProductTest&quot;, 200.0);</span>
+
+<span class="nc" id="L211">        when(productDao.getProductByID(product.getId())).thenReturn(product);</span>
+<span class="nc" id="L212">        doNothing().when(productDao).updateProduct(newProduct);</span>
+
+<span class="nc" id="L214">        mockMvc.perform(</span>
+<span class="nc" id="L215">                put(&quot;/product/id2&quot;)</span>
+<span class="nc" id="L216">                        .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="nc" id="L217">                        .content(asJsonString(product)))</span>
+<span class="nc" id="L218">                .andExpect(status().is(204));</span>
+
+<span class="nc" id="L220">        verify(productDao, times(1)).getProductByID(product.getId());</span>
+<span class="nc" id="L221">        verify(productDao, times(1)).updateProduct(any());</span>
+<span class="nc" id="L222">        verifyNoMoreInteractions(productDao);</span>
+<span class="nc" id="L223">    }</span>
+    
+    public static String asJsonString(final Object obj) {
+        try {
+<span class="nc" id="L227">            final ObjectMapper mapper = new ObjectMapper();</span>
+<span class="nc" id="L228">            final String jsonContent = mapper.writeValueAsString(obj);</span>
+<span class="nc" id="L229">            return jsonContent;</span>
+<span class="nc" id="L230">        } catch (Exception e) {</span>
+<span class="nc" id="L231">            throw new RuntimeException(e);</span>
+        }
+    }
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.0.201403182114</span></div></body></html>

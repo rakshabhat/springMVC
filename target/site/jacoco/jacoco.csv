@@ -1,0 +1,13 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+SpringMVC,test.java,ProductRestServiceTest.TestConfiguration,11,0,0,0,3,0,3,0,3,0
+SpringMVC,test.java,CartRestServiceTest,522,0,0,0,66,0,10,0,10,0
+SpringMVC,test.java,CartRestServiceTest.TestConfiguration,15,0,0,0,4,0,4,0,4,0
+SpringMVC,test.java,ProductRestServiceTest,620,0,0,0,105,0,12,0,12,0
+SpringMVC,com.nisum.shoppingcart.dao,CartItemDao,160,5,12,0,40,1,15,1,9,1
+SpringMVC,com.nisum.shoppingcart.dao,ProductDao,90,5,0,0,25,1,6,1,6,1
+SpringMVC,com.nisum.shoppingcart.controller,ProductController,101,0,0,0,16,0,5,0,5,0
+SpringMVC,com.nisum.shoppingcart.controller,SwaggerConfig,15,0,0,0,6,0,2,0,2,0
+SpringMVC,com.nisum.shoppingcart.beans,CartItem,15,21,0,0,8,8,4,4,4,4
+SpringMVC,com.nisum.shoppingcart.beans,Product,0,43,0,0,0,19,0,10,0,10
+SpringMVC,com.nisum.shoppingcart.rest,CartItemRestService,13,86,0,6,3,16,1,8,1,5
+SpringMVC,com.nisum.shoppingcart.rest,ProductRestService,0,164,0,8,0,28,0,10,0,6

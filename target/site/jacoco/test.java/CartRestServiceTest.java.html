@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>CartRestServiceTest.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">SpringMVC</a> &gt; <a href="index.source.html" class="el_package">test.java</a> &gt; <span class="el_source">CartRestServiceTest.java</span></div><h1>CartRestServiceTest.java</h1><pre class="source lang-java linenums">package test.java;
+
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+
+import com.nisum.shoppingcart.beans.CartItem;
+import com.nisum.shoppingcart.beans.Product;
+import com.nisum.shoppingcart.dao.CartItemDao;
+import com.nisum.shoppingcart.dao.ProductDao;
+import com.nisum.shoppingcart.rest.CartItemRestService;
+
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.hamcrest.core.Is.is;
+import java.util.Arrays;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration
+@WebAppConfiguration
+<span class="nc" id="L38">public class CartRestServiceTest {</span>
+
+	private MockMvc mockMvc;
+
+	@Autowired
+	private CartItemDao cartItemDao;
+
+	@Autowired
+	private WebApplicationContext applicationContext;
+
+	@Before
+	public void setUp() {
+		// We have to reset our mock between tests because the mock objects
+		// are managed by the Spring container. If we would not reset them,
+		// stubbing and verified behavior would &quot;leak&quot; from one test to another.
+<span class="nc" id="L53">		Mockito.reset(cartItemDao);</span>
+
+<span class="nc" id="L55">		mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext).build();</span>
+<span class="nc" id="L56">	}</span>
+
+	@Configuration
+	@EnableWebMvc
+<span class="nc" id="L60">	public static class TestConfiguration {</span>
+
+		@Bean
+		public CartItemRestService cartItemRestService() {
+<span class="nc" id="L64">			return new CartItemRestService();</span>
+		}
+
+		@Bean
+		public CartItemDao cartItemDao() {
+<span class="nc" id="L69">			return Mockito.mock(CartItemDao.class);</span>
+		}
+
+		@Bean
+		public ProductDao productDao() {
+<span class="nc" id="L74">			return Mockito.mock(ProductDao.class);</span>
+		}
+
+	}
+
+	@Test
+	public void testGetCartItemByID() throws Exception {
+<span class="nc" id="L81">		Product product = new Product(&quot;1&quot;, &quot;Test1&quot;, 100.0);</span>
+<span class="nc" id="L82">		CartItem cartItem = new CartItem(product, 2, 200);</span>
+		
+<span class="nc" id="L84">		when(cartItemDao.getCartItemByID(&quot;1&quot;)).thenReturn((cartItem));</span>
+
+<span class="nc" id="L86">		mockMvc.perform(get(&quot;/cartItem/1&quot;)).andDo(print()).andExpect(status().isOk())</span>
+<span class="nc" id="L87">				.andExpect(jsonPath(&quot;$.quantity&quot;, is(2.0))).andExpect(jsonPath(&quot;$.totalPrice&quot;, is(200.0)))</span>
+<span class="nc" id="L88">				.andExpect(jsonPath(&quot;$.product.id&quot;, is(&quot;1&quot;))).andExpect(jsonPath(&quot;$.product.name&quot;, is(&quot;Test1&quot;)));</span>
+
+<span class="nc" id="L90">		verify(cartItemDao, times(1)).getCartItemByID(&quot;1&quot;);</span>
+<span class="nc" id="L91">		verifyNoMoreInteractions(cartItemDao);</span>
+<span class="nc" id="L92">	}</span>
+
+	@Test
+	public void testGetCartItemByIDNotFound() throws Exception {
+
+<span class="nc" id="L97">		when(cartItemDao.getCartItemByID(&quot;2&quot;)).thenReturn((null));</span>
+
+<span class="nc" id="L99">		mockMvc.perform(get(&quot;/cartItem/2&quot;)).andDo(print()).andExpect(status().is(HttpStatus.NOT_FOUND.value()));</span>
+<span class="nc" id="L100">		verify(cartItemDao, times(1)).getCartItemByID(&quot;2&quot;);</span>
+<span class="nc" id="L101">		verifyNoMoreInteractions(cartItemDao);</span>
+<span class="nc" id="L102">	}</span>
+
+	@Test
+	public void testGetAllCartItem() throws Exception {
+<span class="nc" id="L106">		Product product = new Product(&quot;1&quot;, &quot;Test1&quot;, 100.0);</span>
+<span class="nc" id="L107">		CartItem cartItem = new CartItem(product, 2, 200);</span>
+
+<span class="nc" id="L109">		Product product2 = new Product(&quot;2&quot;, &quot;Test2&quot;, 200);</span>
+<span class="nc" id="L110">		CartItem cartItem2 = new CartItem(product2, 3, 600);</span>
+
+<span class="nc" id="L112">		when(cartItemDao.getCartItems()).thenReturn(Arrays.asList(cartItem, cartItem2));</span>
+
+<span class="nc" id="L114">		mockMvc.perform(get(&quot;/cartItem/&quot;)).andDo(print()).andDo(print()).andExpect(status().isOk())</span>
+<span class="nc" id="L115">				.andExpect(jsonPath(&quot;$[0].product.id&quot;, is(&quot;1&quot;))).andExpect(jsonPath(&quot;$[0].product.name&quot;, is(&quot;Test1&quot;)))</span>
+<span class="nc" id="L116">				.andExpect(jsonPath(&quot;$[0].quantity&quot;, is(2.0))).andExpect(jsonPath(&quot;$[1].quantity&quot;, is(3.0)))</span>
+<span class="nc" id="L117">				.andExpect(jsonPath(&quot;$[0].product.price&quot;, is(100.0))).andExpect(jsonPath(&quot;$[1].product.id&quot;, is(&quot;2&quot;)))</span>
+<span class="nc" id="L118">				.andExpect(jsonPath(&quot;$[1].product.name&quot;, is(&quot;Test2&quot;))).andExpect(jsonPath(&quot;$[1].product.price&quot;, is(200.0)));</span>
+
+<span class="nc" id="L120">		verify(cartItemDao, times(1)).getCartItems();</span>
+<span class="nc" id="L121">		verifyNoMoreInteractions(cartItemDao);</span>
+<span class="nc" id="L122">	}</span>
+
+	@Test
+	public void testDeleteCartItemSuccess() throws Exception {
+<span class="nc" id="L126">		Product product = new Product(&quot;id1&quot;, &quot;CartItem1&quot;, 100.0);</span>
+<span class="nc" id="L127">		CartItem cartItem = new CartItem(product, 2, 200);</span>
+
+<span class="nc" id="L129">		when(cartItemDao.getCartItemByID(product.getId())).thenReturn(cartItem);</span>
+<span class="nc" id="L130">		when(cartItemDao.removeFromCart(product.getId())).thenReturn(1);</span>
+
+<span class="nc" id="L132">		mockMvc.perform(delete(&quot;/cartItem/{id}&quot;, product.getId())).andExpect(status().is(204));</span>
+
+<span class="nc" id="L134">		verify(cartItemDao, times(1)).removeFromCart(product.getId());</span>
+<span class="nc" id="L135">		verify(cartItemDao, times(1)).getCartItemByID(product.getId());</span>
+
+<span class="nc" id="L137">		verifyNoMoreInteractions(cartItemDao);</span>
+<span class="nc" id="L138">	}</span>
+
+	@Test
+	public void testDeleteCartItemNotFound() throws Exception {
+<span class="nc" id="L142">		Product product = new Product(&quot;id1&quot;, &quot;CartItem1&quot;, 100.0);</span>
+<span class="nc" id="L143">		when(cartItemDao.getCartItemByID(product.getId())).thenReturn(null);</span>
+<span class="nc" id="L144">		when(cartItemDao.removeFromCart(product.getId())).thenReturn(0);</span>
+
+<span class="nc" id="L146">		mockMvc.perform(delete(&quot;/cartItem/{id}&quot;, product.getId())).andExpect(status().is(404));</span>
+
+<span class="nc" id="L148">		verify(cartItemDao, times(1)).getCartItemByID(product.getId());</span>
+<span class="nc" id="L149">		verifyNoMoreInteractions(cartItemDao);</span>
+<span class="nc" id="L150">	}</span>
+
+
+	@Test
+	public void testUpdateCartItemFailure() throws Exception {
+<span class="nc" id="L155">		Product product = new Product(&quot;id1&quot;, &quot;CartItem1&quot;, 100.0);</span>
+
+<span class="nc" id="L157">		when(cartItemDao.addToCart(product.getId())).thenReturn(0);</span>
+
+<span class="nc" id="L159">		mockMvc.perform(put(&quot;/cartItem/id1&quot;).contentType(MediaType.APPLICATION_JSON).content(asJsonString(product)))</span>
+<span class="nc" id="L160">				.andExpect(status().is(404));</span>
+
+<span class="nc" id="L162">		verify(cartItemDao, times(1)).addToCart(product.getId());</span>
+<span class="nc" id="L163">		verifyNoMoreInteractions(cartItemDao);</span>
+<span class="nc" id="L164">	}</span>
+
+	@Test
+	public void testUpdateCartItemSuccess() throws Exception {
+<span class="nc" id="L168">		Product product = new Product(&quot;id1&quot;, &quot;CartItem1&quot;, 100.0);</span>
+
+<span class="nc" id="L170">		when(cartItemDao.addToCart(product.getId())).thenReturn(1);</span>
+<span class="nc" id="L171">		mockMvc.perform(put(&quot;/cartItem/id1&quot;).contentType(MediaType.APPLICATION_JSON).content(asJsonString(product)))</span>
+<span class="nc" id="L172">				.andExpect(status().is(204));</span>
+
+<span class="nc" id="L174">		verify(cartItemDao, times(1)).addToCart(product.getId());</span>
+<span class="nc" id="L175">		verifyNoMoreInteractions(cartItemDao);</span>
+<span class="nc" id="L176">	}</span>
+
+	public static String asJsonString(final Object obj) {
+		try {
+<span class="nc" id="L180">			final ObjectMapper mapper = new ObjectMapper();</span>
+<span class="nc" id="L181">			final String jsonContent = mapper.writeValueAsString(obj);</span>
+<span class="nc" id="L182">			return jsonContent;</span>
+<span class="nc" id="L183">		} catch (Exception e) {</span>
+<span class="nc" id="L184">			throw new RuntimeException(e);</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.0.201403182114</span></div></body></html>

@@ -1,0 +1,4 @@
+test/java/CartRestServiceTest.class
+test/java/CartRestServiceTest$TestConfiguration.class
+test/java/ProductRestServiceTest$TestConfiguration.class
+test/java/ProductRestServiceTest.class

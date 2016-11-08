@@ -1,0 +1,7 @@
+---
+applications:
+- name: SpringMVC--16618
+  memory: 1024M
+  host: SpringMVC--16618
+  domain: cfapps.io
+  buildpack: springMVC.shoppingcart

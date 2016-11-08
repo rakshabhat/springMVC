@@ -1,0 +1,5 @@
+eclipse.preferences.version=1
+extraProperties=sonar.core.codeCoveragePlugin\=jacoco\r\nsonar.jacoco.reportPath\=/Users/NIS1282m/Documents/workspace/SpringMVC/target/coverage-reports/jacoco.exec\r\nsonar.sources\=src/com\r\nsonar.junit.reportsPath\=target/surefire-reports\r\nsonar.dynamicAnalysis\=reuseReports
+projectKey=SpringMVC\:SpringMVC
+serverUrl=http\://localhost\:9000
+version=2
