@@ -17,7 +17,6 @@
 					<source>1.8</source>
 					<target>1.8</target>
 					<fork>true</fork>
-					<executable>/usr/lib/jvm/java-1.8-openjdk/bin/java</executable>
 				</configuration>
 			</plugin>
 			<plugin>
